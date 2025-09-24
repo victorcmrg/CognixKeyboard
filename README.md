@@ -8,4 +8,4 @@
 py app.py
 
 ```
-<p align="center"> <img src="images/Cognix.png" alt="Cognix Logo" width="200"/> </p>
+<p align="center"> <img src="images/Cognix.png" alt="Cognix Logo" width="800"/> </p>
