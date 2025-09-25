@@ -38,6 +38,7 @@ Antes de rodar o script, você precisa criar sua **API Key** no OpenRouter e esc
    ```python
    "Authorization": "Bearer TOKEN AQUI"       # coloque sua API Key
    "model": "MODELO AQUI"                     # cole o link do modelo da IA
+![codigo.png](images/codigo.png)
 
 9. e execute para testar:
 
