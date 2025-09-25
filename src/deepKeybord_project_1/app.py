@@ -4,11 +4,11 @@ import json
 response = requests.post(
   url="https://openrouter.ai/api/v1/chat/completions",
   headers={
-    "Authorization": "Bearer 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",
+    "Authorization": "Bearer (TOKEN AQUI)",
     "Content-Type": "application/json",
   },
   data=json.dumps({
-    "model": "x-ai/grok-4-fast:free",
+    "model": "(MODELO AQUI)",
     "messages": [
       {
         "role": "user",
