@@ -1,4 +1,5 @@
 <p align="center"> <img src="images/Cognix.png" alt="Cognix Logo" width="850"/> </p>
+
 # Cognix ⌨️
 ### Deep thinker keyboard v0.1
 
