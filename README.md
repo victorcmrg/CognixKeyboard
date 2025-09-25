@@ -7,13 +7,13 @@ Teclado com integração a IA via Token, open source rodando **raspberry pi zero
 
 ---
 
-## Passos
+## Instalação
 **Baixe as dependencias** 
 - Python 3.x
 - Requests `pip install requests`
 - Conta no [OpenRouter](https://openrouter.ai) AI e API Key
 
-## Executar o projeto
+## Passos & executar projeto
 
 Antes de rodar o script, você precisa criar sua **API Key** no OpenRouter e escolher o modelo da IA:
 
