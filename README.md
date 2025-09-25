@@ -27,7 +27,7 @@ Antes de rodar o script, você precisa criar sua **API Key** no OpenRouter e esc
      
 6. Clique no botão **API** da IA e depois em **Create API Key** ![apikey_get.png](images/apikey_get.png)
    - Preencha o nome da chave e clique em **Create**
-      ![createkey.png](images/createkey.png)
+![createkey.png](images/createkey.png)
    - ⚠️ **! ATENÇÃO**: salve sua API Key agora, pois **não será possível visualizá-la novamente**
 
 7. Abra o código do projeto no Visual Studio (ou outro editor de sua preferência).
