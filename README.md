@@ -1,5 +1,5 @@
 <p align="center"> <img src="images/Cognix.png" alt="Cognix Logo" width="850"/> </p>
-#                              Cognix ⌨️
+                  # Cognix ⌨️
 ### Deep thinker keyboard v0.1
 
 Teclado com integração a IA via Token, open source rodando **raspberry pi zero 2 w** com capacidade de leitura de arquivos no Pc conectado e rodar codigos no geral
