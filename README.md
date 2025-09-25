@@ -1,6 +1,11 @@
 # Cognix ⌨️
+### Deep thinker keyboard v0.1
 
 ---
+
+## Passos
+
+--
 
 ## Executar o projeto
 
