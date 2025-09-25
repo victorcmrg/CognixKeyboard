@@ -37,6 +37,8 @@ Antes de rodar o script, você precisa criar sua **API Key** no OpenRouter e esc
    "Authorization": "Bearer TOKEN AQUI"       # coloque sua API Key
    "model": "MODELO AQUI"                     # cole o link do modelo da IA
 
+9. e execute para testar:
+
 
 ```bash
 py app.py
