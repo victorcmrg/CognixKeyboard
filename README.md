@@ -40,8 +40,8 @@ Antes de rodar o script, você precisa criar sua **API Key** no OpenRouter e esc
 9. e execute para testar:
 
 
-```bash
-py app.py
+   ```bash
+   py app.py
 
-```
+   ```
 <p align="center"> <img src="images/Cognix.png" alt="Cognix Logo" width="850"/> </p>
