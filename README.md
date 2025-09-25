@@ -4,8 +4,10 @@
 ---
 
 ## Passos
-
---
+**Baixe as dependencias** 
+- Python 3.x
+- Requests `pip install requests`
+- Conta no [OpenRouter](https://openrouter.ai) AI e API Key
 
 ## Executar o projeto
 
