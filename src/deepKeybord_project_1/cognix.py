@@ -23,12 +23,12 @@ else:
 # Dados da requisição
 url = "https://openrouter.ai/api/v1/chat/completions"
 headers = {
-    "Authorization": "Bearer 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",
+    "Authorization": "Bearer (TOKEN AQUI)",
     "Content-Type": "application/json",
 }
 
 payload = {
-    "model": "x-ai/grok-4-fast:free",
+    "model": "(MODELO AQUI)",
     "messages": [
         {
             "role": "user",
