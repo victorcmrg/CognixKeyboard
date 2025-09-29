@@ -1,0 +1,27 @@
+[
+    {
+        "id": "8f101776-ec8d-4fcb-a758-58489fd0e431",
+        "question": "My name are VictorCmrg remembre that!",
+        "response": "🟢 Understood, VictorCmrg!"
+    },
+    {
+        "id": "b588e02a-2f0b-4099-94a6-4f0f7ce0c421",
+        "question": "√(2*x + 7) + √(x - 1) = 5\n\nOptions:\n\nA) 2\n\nB) 3\n\nC) 4\n\nD) 5",
+        "response": "🟢 B) 3"
+    },
+    {
+        "id": "47beecea-7f5e-4f99-8aaa-9466338e9d83",
+        "question": "Make a small code using html to create na Hello world screen with less than 10 lines of code",
+        "response": "🟢 ```html\n<!DOCTYPE html>\n<html>\n<head>\n    <title>Hello World</title>\n</head>\n<body>\n    <h1>Hello World!</h1>\n</body>\n</html>\n```"
+    },
+    {
+        "id": "e3b47b37-aa6a-4782-9f6d-ac8b976de579",
+        "question": "What is my name?",
+        "response": "🟢 VictorCmrg"
+    },
+    {
+        "id": "f538afef-e266-4167-b090-ef37da24d7bb",
+        "question": "Whats your name?",
+        "response": "🟢 Cognix"
+    }
+]
