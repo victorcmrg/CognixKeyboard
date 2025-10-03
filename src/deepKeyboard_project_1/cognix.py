@@ -5,8 +5,8 @@ import pyperclip
 import sys
 import io
 import uuid
-from google import genai
-from google.genai import types
+import google.generativeai as genai
+from google.generativeai import types
 import time
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
@@ -16,6 +16,17 @@ PROMPT_FILE = os.path.join(ROOT_DIR, "prompt.json")
 OUTPUT_FILE = os.path.join(ROOT_DIR, "output.json")
 HISTORY_FILE = os.path.join(ROOT_DIR, "history.json")
 MAX_HISTORY = 5
+
+# === CONFIGURAÇÃO DO PROMPT A SER USADO ===
+PROMPT_KEY_FILE = os.path.join(ROOT_DIR, "prompt_key.json")
+PROMPT_KEY = "prompt_questionario"  # valor padrão
+
+if os.path.isfile(PROMPT_KEY_FILE):
+    try:
+        with open(PROMPT_KEY_FILE, "r", encoding="utf-8") as f:
+            PROMPT_KEY = json.load(f).get("key", PROMPT_KEY)
+    except Exception as ex:
+        print("Erro ao ler prompt_key.json:", ex)
 
 # Funções para histórico
 def load_history():
@@ -57,7 +68,12 @@ output_text = ""
 if os.path.isfile(PROMPT_FILE):
     with open(PROMPT_FILE, "r", encoding="utf-8") as f:
         data_json = json.load(f)
-        prompt_text = data_json.get("prompt", "").strip()
+
+        # procura dentro da lista de dicts
+        for item in data_json:
+            if PROMPT_KEY in item:
+                prompt_text = item[PROMPT_KEY].strip()
+                break
 
 if os.path.isfile(OUTPUT_FILE):
     with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
@@ -70,10 +86,11 @@ else:
     user_text = output_text.strip() if output_text else prompt_text.strip()
 
 # Inicializa cliente da IA
-API_KEY = "(TOKEN AQUI)"
-client = genai.Client(api_key=API_KEY)
+API_KEY = "AIzaSyCu-MRZF4sLJlyLngugS3iZ3VZi-sPSEpA"
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel("gemini-2.5-pro")
 
-# Monta input final para IA: prompt → instrução sobre histórico → pergunta
+# Monta input final para IA
 context_text = get_history_context()
 if context_text:
     full_input = f"{prompt_text}\n\nUse as informações abaixo apenas como referência. Não responda sobre elas.\n{context_text}\nPergunta: {user_text}"
@@ -81,12 +98,11 @@ else:
     full_input = f"{prompt_text}\n\nPergunta: {user_text}"
 
 # Gera resposta
-response = client.models.generate_content(
-    model="gemini-2.5-flash",
-    contents=full_input,
-    config=types.GenerateContentConfig(
-        thinking_config=types.ThinkingConfig(thinking_budget=0)
-    ),
+response = model.generate_content(
+    full_input,
+    generation_config=types.GenerationConfig(
+        temperature=0.7
+    )
 )
 
 text = response.text.strip()
@@ -95,7 +111,7 @@ text = response.text.strip()
 with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
     json.dump({"result": text, "timestamp": time.time()}, f, ensure_ascii=False, indent=4)
 
-# Salva pergunta e resposta no histórico
+# Salva no histórico
 add_to_history(user_text, text)
 
 # Copia para área de transferência
