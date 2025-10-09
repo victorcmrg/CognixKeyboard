@@ -34,11 +34,15 @@ pip install google.generativeai pyperclip keyboard
 
 7. Entre na pasta do código:
 
-```cd src```
+```
+cd src
+```
 
 8. Execute o script:
 
-```py listener.py```
+```
+py listener.py
+```
 
 ---
 
