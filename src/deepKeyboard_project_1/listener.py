@@ -25,7 +25,6 @@ logging.basicConfig(
 )
 
 OUTPUT_FILE = os.path.join(os.path.dirname(__file__), "output.json")
-PROMPT_KEY_FILE = os.path.join(os.path.dirname(__file__), "prompt_key.json")
 _running_lock = threading.Lock()
 _is_running = False
 
@@ -53,16 +52,8 @@ def save_output(data):
     except Exception as ex:
         logging.exception("Erro ao salvar output.json: %s", ex)
 
-def set_prompt_key(keyname):
-    """Salva a PROMPT_KEY selecionada no arquivo prompt_key.json"""
-    try:
-        with open(PROMPT_KEY_FILE, "w", encoding="utf-8") as f:
-            json.dump({"key": keyname}, f, ensure_ascii=False, indent=4)
-        logging.info("Prompt key definido: %s", keyname)
-    except Exception as ex:
-        logging.exception("Erro ao salvar prompt_key.json: %s", ex)
-
 def run_seeker():
+    """Executa seeker.py e depois cognix.py"""
     global _is_running
     seeker_path = find_seeker_path()
     if not seeker_path:
@@ -109,22 +100,14 @@ def run_seeker():
         _running_lock.release()
         logging.info("Aguardando próxima combinação de hotkey...")
 
-def run_with_prompt(keyname):
-    """Define PROMPT_KEY e executa seeker + cognix"""
-    set_prompt_key(keyname)
-    t = threading.Thread(target=run_seeker, daemon=True)
-    t.start()
-
 # === Main Listener ===
 def main():
     logging.info("Hotkey listener iniciado.")
-    logging.info("Alt+C+X → usa prompt_questionario")
-    logging.info("Alt+R+S → usa prompt_traducao")
-    logging.info("Alt+P → sequencia especial de cópia para clipboard")
+    logging.info("Alt+C+X → executa seeker + cognix")
+    logging.info("Alt+P → sequência especial de cópia para clipboard")
 
-    # Hotkeys para prompts
-    keyboard.add_hotkey('alt+c+x', lambda: run_with_prompt("prompt_questionario"))
-    keyboard.add_hotkey('alt+r+s', lambda: run_with_prompt("prompt_traducao"))
+    # Hotkey para executar seeker + cognix
+    keyboard.add_hotkey('alt+c+x', lambda: threading.Thread(target=run_seeker, daemon=True).start())
 
     # Hotkey para sequência de cópia (Alt+P)
     def run_hello():
@@ -141,7 +124,7 @@ def main():
             pyperclip.copy(char)
             logging.info("Copiado para clipboard: %s", char)
             time.sleep(0.1)
-        logging.info("Sequência finalizada. Aguardando próxima combinação Alt+P ou hotkeys de prompt...")
+        logging.info("Sequência finalizada. Aguardando próxima combinação Alt+P ou hotkey...")
 
     def hotkey_handler_hello():
         t = threading.Thread(target=run_hello, daemon=True)
