@@ -5,49 +5,53 @@ import pyperclip
 import sys
 import io
 import uuid
-import google.generativeai as genai
-from google.generativeai import types
 import time
+from PIL import ImageGrab
+import google.generativeai as genai
+import mimetypes
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+# === Configuração de saída UTF-8 ===
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-ROOT_DIR = os.path.dirname(__file__)
-PROMPT_FILE = os.path.join(ROOT_DIR, "prompt.json")
+# === Caminhos ===
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+IMAGE_DIR = os.path.join(ROOT_DIR, "prompt", "imagem")
+PROMPT_FILE = os.path.join(ROOT_DIR, "prompt/prompt.json")
 OUTPUT_FILE = os.path.join(ROOT_DIR, "output.json")
 HISTORY_FILE = os.path.join(ROOT_DIR, "history.json")
-MAX_HISTORY = 5
+MAX_HISTORY = 15
 
-# === CONFIGURAÇÃO DO PROMPT A SER USADO ===
-PROMPT_KEY_FILE = os.path.join(ROOT_DIR, "prompt_key.json")
-PROMPT_KEY = "prompt_questionario"  # valor padrão
+os.makedirs(IMAGE_DIR, exist_ok=True)
 
-if os.path.isfile(PROMPT_KEY_FILE):
-    try:
-        with open(PROMPT_KEY_FILE, "r", encoding="utf-8") as f:
-            PROMPT_KEY = json.load(f).get("key", PROMPT_KEY)
-    except Exception as ex:
-        print("Erro ao ler prompt_key.json:", ex)
+# === Inicializa Gemini ===
+API_KEY = "AIzaSyCu-MRZF4sLJlyLngugS3iZ3VZi-sPSEpA"
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel("gemini-2.5-pro")
 
-# Funções para histórico
+# === Funções de histórico ===
 def load_history():
     if os.path.isfile(HISTORY_FILE):
         try:
             with open(HISTORY_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except json.JSONDecodeError:
+        except Exception:
             return []
     return []
 
 def save_history(history):
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(history, f, ensure_ascii=False, indent=4)
+    try:
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, ensure_ascii=False, indent=4)
+    except Exception as e:
+        print(f"🔴 Erro ao salvar history.json: {e}")
 
 def add_to_history(question, response):
     history = load_history()
     new_entry = {
         "id": str(uuid.uuid4()),
         "question": question,
-        "response": response
+        "response": response,
+        "timestamp": time.time()
     }
     if len(history) >= MAX_HISTORY:
         history.pop(0)
@@ -56,64 +60,156 @@ def add_to_history(question, response):
 
 def get_history_context():
     history = load_history()
-    context = ""
+    if not history:
+        return ""
+    ctx = ""
     for entry in history:
-        context += f"Pergunta anterior: {entry['question']}\nResposta anterior: {entry['response']}\n"
-    return context
+        q = entry.get("question", "")
+        r = entry.get("response", "")
+        ctx += f"Pergunta anterior: {q}\nResposta anterior: {r}\n"
+    return ctx
 
-# Carrega prompt e output
+# === Lê o prompt base (prompt.json) ===
 prompt_text = ""
-output_text = ""
-
 if os.path.isfile(PROMPT_FILE):
-    with open(PROMPT_FILE, "r", encoding="utf-8") as f:
-        data_json = json.load(f)
+    try:
+        with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if isinstance(data, dict) and "prompt" in data:
+                prompt_text = data["prompt"].strip()
+            elif isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict) and "prompt" in item:
+                        prompt_text = str(item["prompt"]).strip()
+                        break
+    except Exception as e:
+        print(f"🔴 Erro ao ler prompt.json: {e}")
 
-        # procura dentro da lista de dicts
-        for item in data_json:
-            if PROMPT_KEY in item:
-                prompt_text = item[PROMPT_KEY].strip()
-                break
+if not prompt_text:
+    prompt_text = ""  # continuará, mas avisaremos se necessário
 
-if os.path.isfile(OUTPUT_FILE):
-    with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
-        data_json = json.load(f)
-        output_text = data_json.get("result", "").strip()
+# === Função: salva imagem do clipboard (se houver) ===
+def salvar_imagem_clipboard():
+    img = ImageGrab.grabclipboard()
+    if img is not None:
+        filename = f"imagem_clipboard_{int(time.time())}.png"
+        filepath = os.path.join(IMAGE_DIR, filename)
+        try:
+            img.save(filepath, "PNG")
+            return filepath
+        except Exception as e:
+            print(f"🔴 Erro ao salvar imagem do clipboard: {e}")
+    return None
 
-if not prompt_text and not output_text:
-    user_text = "Não siga diretamente o prompt pois a pergunta não foi encontrada apenas repita essa mensagem (🔴 pergunta não encontrada)"
-else:
-    user_text = output_text.strip() if output_text else prompt_text.strip()
+# === Execução principal ===
+def main():
+    # primeiro tenta salvar uma imagem do clipboard (se houver)
+    saved_path = salvar_imagem_clipboard()
 
-# Inicializa cliente da IA
-API_KEY = "AIzaSyCu-MRZF4sLJlyLngugS3iZ3VZi-sPSEpA"
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-2.5-pro")
+    # lista de imagens já presente na pasta
+    image_files = [
+        os.path.join(IMAGE_DIR, f)
+        for f in os.listdir(IMAGE_DIR)
+        if f.lower().endswith((".png", ".jpg", ".jpeg", ".webp", ".bmp"))
+    ]
 
-# Monta input final para IA
-context_text = get_history_context()
-if context_text:
-    full_input = f"{prompt_text}\n\nUse as informações abaixo apenas como referência. Não responda sobre elas.\n{context_text}\nPergunta: {user_text}"
-else:
-    full_input = f"{prompt_text}\n\nPergunta: {user_text}"
+    # obtém texto do clipboard (pode ser vazio)
+    clipboard_text = pyperclip.paste()
+    clipboard_text = clipboard_text.strip() if isinstance(clipboard_text, str) else ""
 
-# Gera resposta
-response = model.generate_content(
-    full_input,
-    generation_config=types.GenerationConfig(
-        temperature=0.7
-    )
-)
+    # compõe a pergunta que será registrada no histórico
+    if image_files:
+        question_repr = "Imagem(s): " + ", ".join(os.path.basename(p) for p in image_files)
+    elif clipboard_text:
+        question_repr = clipboard_text
+    else:
+        question_repr = "(nenhuma pergunta detectada)"
 
-text = response.text.strip()
+    # monta contexto do histórico
+    history_ctx = get_history_context()
+    if history_ctx:
+        full_input_text = f"{prompt_text}\n\nUse as informações abaixo apenas como referência. Não responda sobre elas.\n{history_ctx}\nPergunta: {question_repr if not clipboard_text else clipboard_text}"
+    else:
+        # se houver texto no clipboard, priorizamos ele como pergunta; se não, usamos prompt_text como fallback
+        if clipboard_text:
+            full_input_text = f"{prompt_text}\n\nPergunta: {clipboard_text}"
+        else:
+            full_input_text = f"{prompt_text}\n\nPergunta: {question_repr}"
 
-# Salva resposta no arquivo de output
-with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-    json.dump({"result": text, "timestamp": time.time()}, f, ensure_ascii=False, indent=4)
+    # gera resposta enviando imagens (se houver) ou apenas texto
+    try:
+        if image_files:
+            print(f"🟡 Imagem(s) detectada(s): {', '.join(os.path.basename(p) for p in image_files)}")
+            image_parts = []
+            for path in image_files:
+                try:
+                    mime, _ = mimetypes.guess_type(path)
+                    mime = mime or "image/png"
+                    with open(path, "rb") as f:
+                        data = f.read()
+                    image_parts.append({"mime_type": mime, "data": data})
+                except Exception as e:
+                    print(f"🔴 Falha ao ler imagem {path}: {e}")
 
-# Salva no histórico
-add_to_history(user_text, text)
+            # envia texto + imagens
+            # nota: estrutura compatível com versões recentes do SDK
+            request_parts = [{"text": full_input_text}] + image_parts
+            response = model.generate_content(
+                [{"role": "user", "parts": request_parts}],
+                generation_config=genai.types.GenerationConfig(temperature=0.7)
+            )
+            result_text = response.text.strip() if hasattr(response, "text") else str(response)
 
-# Copia para área de transferência
-pyperclip.copy(text)
-print("\nResposta copiada para a área de transferência")
+            # salva output e history
+            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                json.dump({"result": result_text, "timestamp": time.time()}, f, ensure_ascii=False, indent=4)
+
+            add_to_history(question_repr, result_text)
+
+            # apaga as imagens após análise
+            for p in image_files:
+                try:
+                    os.remove(p)
+                except Exception as e:
+                    print(f"⚠️ Não foi possível remover {p}: {e}")
+
+            pyperclip.copy(result_text)
+            print("\n🟢 Resposta (imagem) copiada para a área de transferência.")
+            print(f"\n{result_text}")
+
+        else:
+            # sem imagens: envia o texto (clipboard_text) como pergunta
+            if not clipboard_text:
+                print("🔴 Nenhum texto ou imagem encontrado na área de transferência.")
+                return
+
+            response = model.generate_content(
+                full_input_text,
+                generation_config=genai.types.GenerationConfig(temperature=0.7)
+            )
+            result_text = response.text.strip() if hasattr(response, "text") else str(response)
+
+            # salva output e history
+            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                json.dump({"result": result_text, "timestamp": time.time()}, f, ensure_ascii=False, indent=4)
+
+            add_to_history(clipboard_text, result_text)
+
+            pyperclip.copy(result_text)
+            print("\n🟢 Resposta (texto) copiada para a área de transferência.")
+            print(f"\n{result_text}")
+
+    except Exception as e:
+        err_msg = f"🔴 Erro ao gerar/obter resposta: {e}"
+        print(err_msg)
+        # registra erro no history para rastreio
+        add_to_history(question_repr, err_msg)
+        # também grava no output.json para consistência
+        try:
+            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                json.dump({"result": err_msg, "timestamp": time.time()}, f, ensure_ascii=False, indent=4)
+        except Exception:
+            pass
+
+if __name__ == "__main__":
+    main()
