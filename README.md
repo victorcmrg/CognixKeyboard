@@ -11,7 +11,9 @@ Teclado com integração a IA via Token, open source, rodando **Raspberry Pi Zer
 **Baixe as dependências:** 
 - Python 3.x
 - Bibliotecas necessárias:
+```
 pip install google.generativeai pyperclip keyboard
+```
 - Conta no gemeni com token premium (temporário até termos um banco de dados local)
 
 ---
