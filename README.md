@@ -12,7 +12,7 @@ Teclado com integração a IA via Token, open source, rodando **Raspberry Pi Zer
 - Python 3.x
 - Bibliotecas necessárias:
 ```
-pip install google.generativeai pyperclip keyboard
+pip install google.generativeai pyperclip keyboard Pillow
 ```
 - Conta no gemeni com token premium (temporário até termos um banco de dados local)
 
