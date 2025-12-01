@@ -24,7 +24,7 @@ MAX_HISTORY = 15
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
 # === Inicializa Gemini ===
-API_KEY = '[API-key]'
+API_KEY = 'AIzaSyDSZsRE7SacHoVc6FsyUwyy0uJlrc3A6KI'
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-2.5-pro")
 
